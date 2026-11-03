@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<title>Our Recipes</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== PASTE YOUR APPS SCRIPT /exec URL BELOW (in the script tag) ===== */
+:root{
+  --ink:#1C1B1A; --muted:#6B6862; --line:#E7E4DE; --soft:#F2F0EC; --bg:#FFFFFF;
+  --accent:#B33A1A; --accent-ink:#FFFFFF;
+  --est-bg:#FFF1D6; --est-ink:#7A4F00; --ok-bg:#E3F4EA; --ok-ink:#1F6B3F; --tick:#1F6B3F;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;color:inherit}
+a{color:var(--accent)}
+.app{max-width:560px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.screen{display:none;flex:1;flex-direction:column}
+.screen.on{display:flex}
+h1,h2{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:800;letter-spacing:-.02em;margin:0}
+.eyebrow{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.top{padding:calc(20px + env(safe-area-inset-top)) 20px 12px;display:flex;flex-direction:column;gap:14px;position:sticky;top:0;background:var(--bg);z-index:5}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.round{width:48px;height:48px;border-radius:24px;border:none;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.search{display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;border-radius:14px;background:var(--soft)}
+.search input{flex:1;border:none;background:transparent;font:inherit;font-size:16px;outline:none;min-width:0;color:var(--ink)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:36px;padding:0 16px;border-radius:999px;font-size:14px;font-weight:600;border:1px solid var(--line);background:#fff;cursor:pointer}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.list{flex:1;padding:4px 20px 24px;display:flex;flex-direction:column;gap:12px}
+.count{font-size:13px;color:var(--muted)}
+.card{display:flex;gap:14px;align-items:center;text-align:left;padding:10px;border-radius:18px;border:1px solid var(--line);background:#fff;cursor:pointer;width:100%}
+.thumb{flex:none;position:relative;width:84px;height:84px;border-radius:14px;background:var(--soft) center/cover no-repeat;overflow:hidden}
+.thumb .play{position:absolute;left:6px;bottom:6px;width:20px;height:20px;border-radius:10px;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center}
+.card .t{font-weight:700;font-size:16px;line-height:1.2}
+.card .m{font-size:13px;color:var(--muted)}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--soft);color:#4A4843}
+.pill.est{background:var(--est-bg);color:var(--est-ink)}
+.pill.ok{background:var(--ok-bg);color:var(--ok-ink)}
+.empty{margin:40px 0;text-align:center;color:var(--muted);font-size:15px;line-height:1.5}
+.nav{display:flex;justify-content:space-around;padding:8px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:#fff;position:sticky;bottom:0}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:72px;min-height:48px;border:none;background:none;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;justify-content:center}
+.nav button.on{color:var(--accent)}
+/* detail */
+.hero{position:relative;flex:none;aspect-ratio:4/3;max-height:52vh;background:var(--soft) center/cover no-repeat;display:flex;align-items:center;justify-content:center}
+.hero iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.hero.playing{aspect-ratio:9/16;max-height:78vh}
+.back{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;width:44px;height:44px;border-radius:22px;border:none;background:rgba(255,255,255,.94);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3}
+.bigplay{width:72px;height:72px;border-radius:36px;border:none;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.body{padding:20px 20px 40px;display:flex;flex-direction:column;gap:18px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{padding:10px;border-radius:14px;background:var(--soft);display:flex;flex-direction:column;gap:2px}
+.stat span:first-child{font-size:11px;color:#4A4843;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.stat span:last-child{font-size:15px;font-weight:700}
+.note{display:flex;gap:10px;padding:12px 14px;border-radius:14px;background:var(--est-bg);color:#5C3B00;font-size:14px;line-height:1.4}
+.note.err{background:#FDE7E3;color:#7A1F0E}
+h3{margin:0;font-size:18px;font-weight:700}
+.ing{display:flex;align-items:center;gap:12px;min-height:48px;padding:6px 0;border:none;border-bottom:1px solid #EFECE7;background:none;text-align:left;cursor:pointer;width:100%}
+.box{flex:none;width:24px;height:24px;border-radius:12px;border:2px solid #C9C5BD;display:flex;align-items:center;justify-content:center}
+.ing.on .box{background:var(--tick);border-color:var(--tick)}
+.ing .tx{flex:1;font-size:15px;line-height:1.35}
+.ing.on .tx{color:var(--muted);text-decoration:line-through}
+.step{display:flex;gap:12px}
+.num{flex:none;width:28px;height:28px;border-radius:14px;background:var(--ink);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.step .tx{font-size:15px;line-height:1.5;padding-top:3px}
+.btn{height:52px;border-radius:16px;border:none;background:var(--accent);color:#fff;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:0 16px}
+.btn.line{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.ghost{background:none;color:var(--muted);height:44px;font-size:14px;font-weight:600}
+.stars{display:flex;gap:6px;justify-content:center}
+.stars button{width:48px;height:48px;border:none;background:none;font-size:30px;line-height:1;cursor:pointer;color:#D6D2CA}
+.stars button.on{color:#E0A100}
+.srcs a{display:block;font-size:14px;padding:6px 0}
+/* saving */
+.dark{background:var(--ink);color:#fff}
+.dark .eyebrow{color:#C9C5BD}
+.steps{margin:28px 24px 0;padding:18px;border-radius:20px;background:#2A2926;display:flex;flex-direction:column;gap:16px}
+.srow{display:flex;align-items:center;gap:12px;font-size:16px;color:#8F8A82}
+.srow .dot{flex:none;width:24px;height:24px;border-radius:12px;border:2px solid #4A4843;display:flex;align-items:center;justify-content:center}
+.srow.act{color:#fff;font-weight:600}.srow.act .dot{border-color:#fff}
+.srow.done{color:#fff}.srow.done .dot{background:#7FD39B;border-color:#7FD39B}
+.spin{width:12px;height:12px;border-radius:6px;border:2px solid #fff;border-top-color:transparent;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* add sheet */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.sheet.on{display:flex}
+.panel{background:#fff;width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:22px 20px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px}
+.field{width:100%;height:50px;border-radius:14px;border:1.5px solid var(--line);padding:0 14px;font:inherit;font-size:16px}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;font-weight:600;z-index:30;display:none;max-width:90vw;text-align:center}
+.toast.on{display:block}
+.shop{display:flex;flex-direction:column}
+.form{padding:8px 20px 40px;display:flex;flex-direction:column;gap:16px}
+.form label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;color:#4A4843}
+.form .hint{font-weight:400;color:var(--muted);font-size:12px}
+.ta{width:100%;min-height:150px;border-radius:14px;border:1.5px solid var(--line);padding:12px 14px;font:inherit;font-size:16px;line-height:1.45;resize:vertical;color:var(--ink)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.photo{position:relative;height:180px;border-radius:18px;border:1.5px dashed #C9C5BD;background:var(--soft) center/cover no-repeat;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-weight:600;font-size:14px;overflow:hidden}
+.photo.has span{background:rgba(0,0,0,.55);color:#fff;padding:8px 12px;border-radius:999px}
+.photo input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.topbar{padding:calc(14px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px;position:sticky;top:0;background:#fff;z-index:5;border-bottom:1px solid var(--line)}
+.iconbtn{width:44px;height:44px;border-radius:22px;border:none;background:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.small{font-size:12px;color:var(--muted);text-align:center;padding:4px 0 8px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ============ LIST ============ -->
+<section class="screen on" id="sList">
+  <div class="top">
+    <div class="row">
+      <div>
+        <div class="eyebrow">Saved from TikTok</div>
+        <h1 style="font-size:34px;line-height:1.05">Our Recipes</h1>
+      </div>
+      <button class="round" id="addBtn" aria-label="Add a TikTok link">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <label class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6862" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search recipes or ingredients" aria-label="Search recipes">
+    </label>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="list" id="list"></div>
+  <div class="small" id="usage"></div>
+</section>
+
+<!-- ============ DETAIL ============ -->
+<section class="screen" id="sDetail">
+  <div class="hero" id="hero">
+    <button class="back" id="backBtn" aria-label="Back to recipes">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1B1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <button class="bigplay" id="playBtn" aria-label="Watch the TikTok">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5l12 7-12 7z"/></svg>
+    </button>
+  </div>
+  <div class="body" id="dBody"></div>
+</section>
+
+<!-- ============ SAVING ============ -->
+<section class="screen dark" id="sSave">
+  <div style="padding:calc(40px + env(safe-area-inset-top)) 24px 0;display:flex;flex-direction:column;gap:8px">
+    <div class="eyebrow">Shared from TikTok</div>
+    <h2 id="saveTitle" style="font-size:30px;line-height:1.1">Saving recipe…</h2>
+    <div id="saveUrl" style="font-size:14px;color:#C9C5BD;word-break:break-all"></div>
+  </div>
+  <div class="steps" id="saveSteps"></div>
+  <div id="saveMsg" style="margin:16px 24px 0;font-size:15px;line-height:1.45;color:#E7E4DE"></div>
+  <div style="flex:1"></div>
+  <div style="padding:0 24px calc(32px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px">
+    <button class="btn" id="saveView" style="display:none">View recipe</button>
+    <button class="btn line" id="saveBack" style="background:transparent;color:#fff;border-color:#4A4843">Back to recipes</button>
+  </div>
+</section>
+
+<!-- ============ SHOPPING ============ -->
+<section class="screen" id="sShop">
+  <div class="top">
+    <div class="eyebrow">Ticked off as you shop</div>
+    <h1 style="font-size:34px;line-height:1.05">Shopping</h1>
+  </div>
+  <div class="list" id="shop"></div>
+</section>
+
+<!-- ============ EDIT / WRITE OWN ============ -->
+<section class="screen" id="sEdit">
+  <div class="topbar">
+    <button class="iconbtn" id="editCancel" aria-label="Cancel">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1B1A" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <h2 id="editHead" style="font-size:22px;flex:1">Edit recipe</h2>
+  </div>
+  <div class="form">
+    <div class="photo" id="photoBox"><span id="photoLabel">Add a photo</span><input type="file" accept="image/*" id="photoIn" aria-label="Choose a photo"></div>
+    <label>Name<input class="field" id="fTitle" placeholder="e.g. Nan's apple crumble"></label>
+    <div class="two">
+      <label>Time<input class="field" id="fTime" placeholder="45 min"></label>
+      <label>Serves<input class="field" id="fServes" placeholder="4"></label>
+    </div>
+    <label>Tags <span class="hint">Separate with commas</span><input class="field" id="fTags" placeholder="Dinner, Quick"></label>
+    <label>Ingredients <span class="hint">One per line</span><textarea class="ta" id="fIng" placeholder="500g mince&#10;1 onion, diced"></textarea></label>
+    <label>Method <span class="hint">One step per line</span><textarea class="ta" id="fSteps" placeholder="Brown the mince.&#10;Add the onion and cook 5 minutes."></textarea></label>
+    <label>Notes <span class="hint">Optional</span><textarea class="ta" id="fNotes" style="min-height:90px" placeholder="Swapped cream for milk, still great"></textarea></label>
+    <button class="btn" id="editSave">Save recipe</button>
+  </div>
+</section>
+
+<nav class="nav" id="nav">
+  <button class="on" data-go="sList">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Recipes</button>
+  <button data-go="sShop">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></svg>Shopping</button>
+</nav>
+</div>
+
+<!-- add sheet -->
+<div class="sheet" id="addSheet">
+  <div class="panel">
+    <h2 style="font-size:24px">Add a recipe</h2>
+    <p style="margin:0;color:var(--muted);font-size:14px;line-height:1.45">Easiest way: in TikTok tap <b>Share</b> → <b>Our Recipes</b>. Or paste the link here.</p>
+    <input class="field" id="addUrl" type="url" placeholder="https://vt.tiktok.com/…" aria-label="TikTok link">
+    <button class="btn" id="addGo">Save recipe</button>
+    <div class="or">or</div>
+    <button class="btn line" id="addOwn">Write my own recipe</button>
+    <button class="btn ghost" id="addCancel">Cancel</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================== SETTINGS ================== */
+const API = 'https://script.google.com/macros/s/AKfycbxlTW_XCM4pzLXHK7qcExthykDhvtshZ7oAR5TjblabnAhHlURHSWo-CeEj4h71p15qXQ/exec';
+/* ============================================== */
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} }
+};
+
+let recipes = store.get('recipes', []);
+let filter = 'All', query = '', current = null;
+let ticks = store.get('ticks', {});
+let shop = store.get('shop', []);
+
+const ICON_CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+const ICON_PLAY_SM = '<svg width="10" height="10" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>';
+
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+/* ---------- API ---------- */
+async function apiGet(params) {
+  const r = await fetch(API + '?' + new URLSearchParams(params));
+  return r.json();
+}
+async function apiPost(body) {
+  const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
+  return r.json();
+}
+
+async function refresh() {
+  if (API.startsWith('PASTE')) { renderList(); $('#usage').textContent = 'Add your Apps Script URL in index.html to connect.'; return; }
+  try {
+    const j = await apiGet({ action: 'list' });
+    if (j.ok) {
+      recipes = j.recipes; store.set('recipes', recipes);
+      $('#usage').textContent = 'Web lookups this month: ' + j.searches + ' of ' + j.cap + ' free';
+      renderList();
+      if (current) { const u = recipes.find(r => r.url === current.url); if (u) { current = u; if ($('#sDetail').classList.contains('on')) renderDetail(); } }
+    }
+  } catch (_) { toast('Offline — showing saved copy'); }
+}
+
+/* ---------- screens ---------- */
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  $('#nav').style.display = (id === 'sList' || id === 'sShop') ? 'flex' : 'none';
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.go === id));
+  if (id !== 'sDetail') stopVideo();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('#nav button').forEach(b => b.onclick = () => { show(b.dataset.go); if (b.dataset.go === 'sShop') renderShop(); });
+
+/* ---------- list ---------- */
+function renderList() {
+  const tags = ['All'];
+  recipes.forEach(r => (r.tags || []).forEach(t => { if (!tags.includes(t)) tags.push(t); }));
+  if (!tags.includes(filter)) filter = 'All';
+  $('#chips').innerHTML = tags.map(t => `<button class="chip ${t === filter ? 'on' : ''}" data-t="${esc(t)}">${esc(t)}</button>`).join('');
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => { filter = c.dataset.t; renderList(); });
+
+  const q = query.toLowerCase();
+  const shown = recipes.filter(r => {
+    if (filter !== 'All' && !(r.tags || []).includes(filter)) return false;
+    if (!q) return true;
+    const hay = (r.title + ' ' + r.author + ' ' + (r.ingredients || []).map(i => i.text).join(' ')).toLowerCase();
+    return hay.includes(q);
+  });
+
+  if (!recipes.length) {
+    $('#list').innerHTML = `<div class="empty">No recipes yet.<br>In TikTok, tap <b>Share</b> → <b>Our Recipes</b><br>or tap the + to paste a link.</div>`;
+    return;
+  }
+  $('#list').innerHTML = `<div class="count">${shown.length} ${shown.length === 1 ? 'recipe' : 'recipes'}</div>` +
+    (shown.length ? shown.map((r, i) => {
+      const pills = [];
+      if (r.status === 'queued') pills.push('<span class="pill">Finishing tonight</span>');
+      else if (r.status === 'partial') pills.push('<span class="pill est">Gaps filled</span>');
+      else pills.push('<span class="pill ok">Full recipe</span>');
+      if (r.cooked) pills.push(`<span class="pill">Cooked ★ ${r.cooked}</span>`);
+      const meta = [r.time, r.serves ? 'Serves ' + r.serves : ''].filter(Boolean).join(' · ') || (r.own ? 'Our own recipe' : '@' + esc(r.author));
+      return `<button class="card" data-u="${esc(r.url)}">
+        <div class="thumb" style="background-image:url('${esc(r.thumb)}')"><div class="play">${ICON_PLAY_SM}</div></div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
+          <span class="t">${esc(r.title)}</span><span class="m">${meta}</span>
+          <div class="pills">${pills.join('')}</div>
+        </div></button>`;
+    }).join('') : '<div class="empty">No recipes match that.</div>');
+  document.querySelectorAll('.card').forEach(c => c.onclick = () => openRecipe(c.dataset.u));
+}
+$('#q').oninput = e => { query = e.target.value; renderList(); };
+
+/* ---------- detail ---------- */
+function openRecipe(url) {
+  current = recipes.find(r => r.url === url);
+  if (!current) return;
+  renderDetail(); show('sDetail');
+}
+
+function renderDetail() {
+  const r = current;
+  const hero = $('#hero');
+  stopVideo();
+  hero.style.backgroundImage = r.thumb ? `url('${r.thumb}')` : '';
+  $('#playBtn').style.display = r.videoId ? 'flex' : 'none';
+
+  const t = ticks[r.url] || {};
+  const nTicked = (r.ingredients || []).filter((_, i) => t[i]).length;
+  const queued = r.status === 'queued';
+
+  $('#dBody').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:13px;color:var(--muted)">${r.own ? 'Our own recipe' : `From <a href="https://www.tiktok.com/@${esc(r.author)}" target="_blank" rel="noopener">@${esc(r.author)}</a>`}${r.edited ? ' · edited' : ''}</span>
+      <h2 style="font-size:28px;line-height:1.1">${esc(r.title)}</h2>
+    </div>
+    ${!queued ? '<button class="btn line" id="editBtn" style="height:44px;font-size:15px">Edit recipe</button>' : ''}
+    ${queued ? `<div class="note err"><span>${esc(r.error || 'Not finished yet.')} <br><button class="btn line" id="retryBtn" style="margin-top:10px;height:44px">Try again now</button></span></div>` : ''}
+    ${!queued ? `<div class="stats">
+      <div class="stat"><span>Time</span><span>${esc(r.time || '—')}</span></div>
+      <div class="stat"><span>Serves</span><span>${esc(r.serves || '—')}</span></div>
+      <div class="stat"><span>Cooked</span><span>${r.cooked ? '★ ' + r.cooked : 'Not yet'}</span></div>
+    </div>` : ''}
+    ${r.status === 'partial' ? `<div class="note"><span>The video didn't list everything. Items marked <b>Est.</b> were filled in${r.searched ? ' from similar recipes online' : ' with the standard version of this dish'}.</span></div>` : ''}
+    ${(r.ingredients || []).length ? `<div>
+      <div class="row" style="margin-bottom:6px"><h3>Ingredients</h3><span style="font-size:13px;color:var(--muted)">${nTicked} of ${r.ingredients.length} ticked</span></div>
+      ${r.ingredients.map((x, i) => `<button class="ing ${t[i] ? 'on' : ''}" data-i="${i}"><span class="box">${t[i] ? ICON_CHECK : ''}</span><span class="tx">${esc(x.text)}</span>${x.from === 'web' ? '<span class="pill est" style="font-weight:700">Est.</span>' : ''}</button>`).join('')}
+    </div>
+    <button class="btn line" id="toShop">Add unticked to shopping list</button>` : ''}
+    ${(r.steps || []).length ? `<div style="display:flex;flex-direction:column;gap:12px"><h3>Method</h3>
+      ${r.steps.map((s, i) => `<div class="step"><span class="num">${i + 1}</span><div style="display:flex;flex-direction:column;gap:5px"><span class="tx">${esc(s.text)}</span>${s.from === 'web' ? '<span class="pill est" style="align-self:flex-start;font-weight:700">Est.</span>' : ''}</div></div>`).join('')}
+    </div>` : ''}
+    ${r.notes ? `<div class="note" style="background:var(--soft);color:var(--ink)"><span>${esc(r.notes)}</span></div>` : ''}
+    ${(r.sources || []).length ? `<div class="srcs"><h3 style="font-size:15px;color:#4A4843;margin-bottom:4px">Gaps filled from</h3>${r.sources.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join('')}</div>` : ''}
+    ${!queued ? `<div style="display:flex;flex-direction:column;gap:6px;align-items:center;padding-top:6px">
+      <h3 style="font-size:15px">How was it?</h3>
+      <div class="stars">${[1,2,3,4,5].map(n => `<button data-s="${n}" class="${(r.cooked || 0) >= n ? 'on' : ''}" aria-label="${n} star${n > 1 ? 's' : ''}">★</button>`).join('')}</div>
+    </div>` : ''}
+    ${r.own ? '' : `<a class="btn line" href="${esc(r.url)}" target="_blank" rel="noopener" style="text-decoration:none">Open in TikTok app</a>`}
+    <button class="btn ghost" id="delBtn">Delete recipe</button>`;
+
+  document.querySelectorAll('.ing').forEach(b => b.onclick = () => {
+    const i = b.dataset.i; ticks[r.url] = ticks[r.url] || {}; ticks[r.url][i] = !ticks[r.url][i];
+    store.set('ticks', ticks); renderDetail();
+  });
+  const ts = $('#toShop'); if (ts) ts.onclick = () => {
+    let n = 0;
+    r.ingredients.forEach((x, i) => { if (!t[i] && !shop.some(s => s.text === x.text)) { shop.push({ text: x.text, from: r.title, done: false }); n++; } });
+    store.set('shop', shop); toast(n ? `Added ${n} to shopping list` : 'Already on the list');
+  };
+  document.querySelectorAll('.stars button').forEach(b => b.onclick = async () => {
+    const n = Number(b.dataset.s); r.cooked = r.cooked === n ? 0 : n; renderDetail(); renderList();
+    try { await apiPost({ action: 'update', url: r.url, changes: { cooked: r.cooked } }); store.set('recipes', recipes); } catch (_) { toast("Couldn't save rating"); }
+  });
+  const rb = $('#retryBtn'); if (rb) rb.onclick = async () => {
+    rb.textContent = 'Working…'; rb.disabled = true;
+    try { const j = await apiPost({ action: 'retry', url: r.url }); if (j.recipe) Object.assign(r, j.recipe); } catch (_) {}
+    renderDetail(); renderList(); store.set('recipes', recipes);
+  };
+  const eb = $('#editBtn'); if (eb) eb.onclick = () => openEdit(r);
+  $('#delBtn').onclick = async () => {
+    if (!confirm('Delete "' + r.title + '"?')) return;
+    recipes = recipes.filter(x => x.url !== r.url); store.set('recipes', recipes); renderList(); show('sList');
+    try { await apiPost({ action: 'delete', url: r.url }); } catch (_) {}
+  };
+}
+
+function playVideo() {
+  if (!current || !current.videoId) return;
+  const hero = $('#hero');
+  hero.classList.add('playing');
+  $('#playBtn').style.display = 'none';
+  const f = document.createElement('iframe');
+  f.src = 'https://www.tiktok.com/player/v1/' + current.videoId + '?autoplay=1&music_info=1&description=1';
+  f.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
+  f.allowFullscreen = true;
+  f.title = 'TikTok video';
+  hero.appendChild(f);
+}
+function stopVideo() {
+  const f = $('#hero iframe'); if (f) f.remove();
+  $('#hero').classList.remove('playing');
+  if (current && current.videoId) $('#playBtn').style.display = 'flex';
+}
+$('#playBtn').onclick = playVideo;
+$('#backBtn').onclick = () => show('sList');
+
+/* ---------- edit / write own ---------- */
+let editing = null, editPhoto = null;
+
+function openEdit(r) {
+  editing = r || null; editPhoto = null;
+  $('#addSheet').classList.remove('on');
+  $('#editHead').textContent = r ? 'Edit recipe' : 'New recipe';
+  $('#fTitle').value = r ? r.title : '';
+  $('#fTime').value = r ? r.time || '' : '';
+  $('#fServes').value = r ? r.serves || '' : '';
+  $('#fTags').value = r ? (r.tags || []).join(', ') : '';
+  $('#fIng').value = r ? (r.ingredients || []).map(x => x.text).join('\n') : '';
+  $('#fSteps').value = r ? (r.steps || []).map(x => x.text).join('\n') : '';
+  $('#fNotes').value = r ? r.notes || '' : '';
+  setPhotoBox(r && r.thumb);
+  show('sEdit');
+}
+
+function setPhotoBox(src) {
+  const box = $('#photoBox');
+  box.style.backgroundImage = src ? `url('${src}')` : '';
+  box.classList.toggle('has', !!src);
+  $('#photoLabel').textContent = src ? 'Change photo' : 'Add a photo';
+}
+
+// Shrinks the photo on the phone before sending (keeps uploads quick)
+function shrinkImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 1000, k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(img.src);
+      resolve(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+$('#photoIn').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { editPhoto = await shrinkImage(f); setPhotoBox(editPhoto); } catch (_) { toast("Couldn't load that photo"); }
+};
+
+// Keeps the "Est." tag on lines she didn't change
+function toItems(text, old) {
+  const prev = {}; (old || []).forEach(x => prev[x.text] = x.from);
+  return text.split('\n').map(s => s.trim()).filter(Boolean).map(t => ({ text: t, from: prev[t] || 'mine' }));
+}
+
+$('#editSave').onclick = async () => {
+  const title = $('#fTitle').value.trim();
+  if (!title) { toast('Give it a name'); return; }
+  const data = {
+    title: title,
+    time: $('#fTime').value.trim(),
+    serves: $('#fServes').value.trim(),
+    tags: $('#fTags').value.split(',').map(s => s.trim()).filter(Boolean),
+    ingredients: toItems($('#fIng').value, editing && editing.ingredients),
+    steps: toItems($('#fSteps').value, editing && editing.steps),
+    notes: $('#fNotes').value.trim()
+  };
+  if (editPhoto) data.photo = editPhoto;
+  if (API.startsWith('PASTE')) { toast('Not connected yet'); return; }
+
+  const btn = $('#editSave'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const j = editing
+      ? await apiPost({ action: 'update', url: editing.url, changes: data })
+      : await apiPost({ action: 'own', recipe: data });
+    if (!j.ok) throw new Error(j.error);
+    const r = j.recipe;
+    recipes = [r].concat(recipes.filter(x => x.url !== r.url));
+    if (editing) recipes.sort((a, b) => String(b.added).localeCompare(String(a.added)));
+    store.set('recipes', recipes); renderList();
+    current = r; renderDetail(); show('sDetail');
+    toast('Saved');
+  } catch (e) {
+    toast("Couldn't save — " + (e.message || 'check your internet'));
+  }
+  btn.disabled = false; btn.textContent = 'Save recipe';
+};
+$('#editCancel').onclick = () => show(editing ? 'sDetail' : 'sList');
+$('#addOwn').onclick = () => openEdit(null);
+
+/* ---------- shopping ---------- */
+function renderShop() {
+  if (!shop.length) { $('#shop').innerHTML = '<div class="empty">Nothing on the list.<br>Open a recipe and tap <b>Add unticked to shopping list</b>.</div>'; return; }
+  $('#shop').innerHTML = `<div class="shop">${shop.map((s, i) => `<button class="ing ${s.done ? 'on' : ''}" data-i="${i}"><span class="box">${s.done ? ICON_CHECK : ''}</span><span class="tx">${esc(s.text)}<br><span style="font-size:12px;color:var(--muted);text-decoration:none">${esc(s.from)}</span></span></button>`).join('')}</div>
+    <button class="btn line" id="clearDone">Clear ticked items</button>`;
+  document.querySelectorAll('#shop .ing').forEach(b => b.onclick = () => { shop[b.dataset.i].done = !shop[b.dataset.i].done; store.set('shop', shop); renderShop(); });
+  $('#clearDone').onclick = () => { shop = shop.filter(s => !s.done); store.set('shop', shop); renderShop(); };
+}
+
+/* ---------- saving (share + paste) ---------- */
+const STEPS = ['Reading the TikTok', 'Working out the dish', 'Checking similar recipes', 'Filling the gaps'];
+let stepTimer;
+function drawSteps(n, doneAll) {
+  $('#saveSteps').innerHTML = STEPS.map((s, i) => {
+    const cls = doneAll || i < n ? 'done' : i === n ? 'act' : '';
+    const dot = cls === 'done' ? ICON_CHECK.replace('#fff', '#1C1B1A') : cls === 'act' ? '<span class="spin"></span>' : '';
+    return `<div class="srow ${cls}"><span class="dot">${dot}</span>${s}</div>`;
+  }).join('');
+}
+
+async function saveLink(text) {
+  show('sSave');
+  $('#saveTitle').textContent = 'Saving recipe…';
+  $('#saveUrl').textContent = (text.match(/https?:\/\/\S+/) || [text])[0];
+  $('#saveMsg').textContent = '';
+  $('#saveView').style.display = 'none';
+  let n = 0; drawSteps(0);
+  clearInterval(stepTimer);
+  stepTimer = setInterval(() => { if (n < STEPS.length - 1) drawSteps(++n); }, 3500);
+
+  if (API.startsWith('PASTE')) { clearInterval(stepTimer); $('#saveTitle').textContent = 'Not connected yet'; $('#saveMsg').textContent = 'Paste your Apps Script URL into index.html.'; return; }
+
+  try {
+    const j = await apiPost({ text: text });
+    clearInterval(stepTimer);
+    if (!j.ok) { $('#saveTitle').textContent = "Couldn't save that"; $('#saveMsg').textContent = j.error || 'Something went wrong.'; return; }
+    const r = j.recipe;
+    recipes = [r].concat(recipes.filter(x => x.url !== r.url)); store.set('recipes', recipes); renderList();
+    if (j.duplicate) { drawSteps(0, true); $('#saveTitle').textContent = 'Already saved: ' + r.title; }
+    else if (j.queued) { drawSteps(1); $('#saveTitle').textContent = 'Saved — finishing later'; $('#saveMsg').textContent = r.error || 'It will finish automatically tonight.'; }
+    else { drawSteps(0, true); $('#saveTitle').textContent = 'Saved: ' + r.title; }
+    $('#saveView').style.display = 'flex';
+    $('#saveView').onclick = () => openRecipe(r.url);
+  } catch (e) {
+    clearInterval(stepTimer);
+    $('#saveTitle').textContent = "Couldn't reach the server";
+    $('#saveMsg').textContent = 'Check your internet and try again.';
+  }
+}
+$('#saveBack').onclick = () => { clearInterval(stepTimer); show('sList'); };
+
+$('#addBtn').onclick = () => { $('#addSheet').classList.add('on'); $('#addUrl').value = ''; setTimeout(() => $('#addUrl').focus(), 50); };
+$('#addCancel').onclick = () => $('#addSheet').classList.remove('on');
+$('#addSheet').onclick = e => { if (e.target.id === 'addSheet') $('#addSheet').classList.remove('on'); };
+$('#addGo').onclick = () => {
+  const v = $('#addUrl').value.trim();
+  if (!/tiktok\.com/i.test(v)) { toast('Paste a TikTok link'); return; }
+  $('#addSheet').classList.remove('on'); saveLink(v);
+};
+
+/* ---------- start ---------- */
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+const p = new URLSearchParams(location.search);
+const shared = [p.get('url'), p.get('text'), p.get('title')].filter(Boolean).join(' ');
+renderList();
+if (shared) {
+  history.replaceState(null, '', location.pathname);
+  saveLink(shared);
+} else {
+  show('sList');
+}
+refresh();
+</script>
+</body>
+</html>
