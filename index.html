@@ -364,7 +364,7 @@ function renderDetail() {
       <h3 style="font-size:15px">How was it?</h3>
       <div class="stars">${[1,2,3,4,5].map(n => `<button data-s="${n}" class="${(r.cooked || 0) >= n ? 'on' : ''}" aria-label="${n} star${n > 1 ? 's' : ''}">★</button>`).join('')}</div>
     </div>` : ''}
-    ${r.own ? '' : `<a class="btn line" href="${esc(r.url)}" target="_blank" rel="noopener" style="text-decoration:none">Open in TikTok app</a>`}
+    ${r.own ? '' : `<a class="btn line" href="${esc(tiktokLink(r.url))}" target="_blank" rel="noopener" style="text-decoration:none">Open in TikTok app</a>`}
     <button class="btn ghost" id="delBtn">Delete recipe</button>`;
 
   document.querySelectorAll('.ing').forEach(b => b.onclick = () => {
@@ -440,7 +440,7 @@ function addWatchChip(prominent) {
   const old = $('#hero .vchip'); if (old) old.remove();
   const a = document.createElement('a');
   a.className = 'vchip' + (prominent ? ' big' : '');
-  a.href = current.url; a.target = '_blank'; a.rel = 'noopener';
+  a.href = tiktokLink(current.url); a.target = '_blank'; a.rel = 'noopener';
   a.textContent = prominent ? 'Not playing? Watch in TikTok' : 'Open in TikTok';
   hero.appendChild(a);
 }
@@ -453,9 +453,17 @@ function stopVideo() {
 }
 // Phones: TikTok blocks its embedded player, so open the video in the TikTok app instead
 const IS_PHONE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const IS_ANDROID = /Android/i.test(navigator.userAgent);
+// On Android, open the TikTok app itself (falls back to the TikTok website if the app isn't installed)
+function tiktokLink(url) {
+  if (!IS_ANDROID || !/^https:\/\/(www\.)?tiktok\.com\//.test(url)) return url;
+  const path = url.replace(/^https:\/\//, '');
+  return 'intent://' + path + '#Intent;scheme=https;package=com.zhiliaoapp.musically;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+}
 $('#playBtn').onclick = () => {
   if (!current || !current.url) return;
   if (IS_PHONE) {
+    if (IS_ANDROID) { location.href = tiktokLink(current.url); return; }
     const a = document.createElement('a');
     a.href = current.url; a.target = '_blank'; a.rel = 'noopener';
     document.body.appendChild(a); a.click(); a.remove();
