@@ -1,9 +1,10 @@
 // Keeps the app shell available offline. Recipes themselves are cached by the page.
-const CACHE = 'our-recipes-v4';
+const CACHE = 'our-recipes-v5';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const FRESH = { cache: 'no-cache' }; // always check GitHub for a newer copy
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, FRESH)))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -15,7 +16,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request).then(res => {
+    fetch(e.request, FRESH).then(res => {
       const copy = res.clone();
       caches.open(CACHE).then(c => c.put(e.request, copy));
       return res;
