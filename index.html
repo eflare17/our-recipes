@@ -257,12 +257,27 @@ async function apiPost(body) {
   return r.json();
 }
 
+/* ---------- background gap-filling ---------- */
+const filling = new Set();
+function startFill(url) {
+  if (filling.has(url)) return;
+  filling.add(url);
+  apiPost({ action: 'fill', url: url }).then(j => {
+    if (j && j.recipe) {
+      recipes = recipes.map(x => x.url === url ? j.recipe : x); store.set('recipes', recipes); renderList();
+      if (current && current.url === url) { current = j.recipe; if ($('#sDetail').classList.contains('on')) renderDetail(); }
+      if (j.recipe.status !== 'filling') toast('Gaps filled: ' + j.recipe.title);
+    }
+  }).catch(() => {}).finally(() => filling.delete(url));
+}
+
 async function refresh() {
   if (API.startsWith('PASTE')) { renderList(); $('#usage').textContent = 'Add your Apps Script URL in index.html to connect.'; return; }
   try {
     const j = await apiGet({ action: 'list' });
     if (j.ok) {
       recipes = j.recipes; store.set('recipes', recipes);
+      recipes.filter(r => r.status === 'filling' && Date.now() - new Date(r.added).getTime() > 120000).forEach(r => startFill(r.url));
       $('#usage').textContent = 'Web lookups this month: ' + j.searches + ' of ' + j.cap + ' free';
       renderList();
       if (current) { const u = recipes.find(r => r.url === current.url); if (u) { current = u; if ($('#sDetail').classList.contains('on')) renderDetail(); } }
@@ -304,6 +319,7 @@ function renderList() {
     (shown.length ? shown.map((r, i) => {
       const pills = [];
       if (r.status === 'queued') pills.push('<span class="pill">Finishing tonight</span>');
+      else if (r.status === 'filling') pills.push('<span class="pill est">Filling gaps\u2026</span>');
       else if (r.status === 'partial') pills.push('<span class="pill est">Gaps filled</span>');
       else pills.push('<span class="pill ok">Full recipe</span>');
       if (r.cooked) pills.push(`<span class="pill">Cooked ★ ${r.cooked}</span>`);
@@ -349,6 +365,7 @@ function renderDetail() {
       <div class="stat"><span>Serves</span><span>${esc(r.serves || '—')}</span></div>
       <div class="stat"><span>Cooked</span><span>${r.cooked ? '★ ' + r.cooked : 'Not yet'}</span></div>
     </div>` : ''}
+    ${r.status === 'filling' ? `<div class="note"><span>Filling in the missing bits from similar recipes online\u2026 This updates by itself in a moment.</span></div>` : ''}
     ${r.status === 'partial' ? `<div class="note"><span>The video didn't list everything. Items marked <b>Est.</b> were filled in${r.searched ? ' from similar recipes online' : ' with the standard version of this dish'}.</span></div>` : ''}
     ${(r.ingredients || []).length ? `<div>
       <div class="row" style="margin-bottom:6px"><h3>Ingredients</h3><span style="font-size:13px;color:var(--muted)">${nTicked} of ${r.ingredients.length} ticked</span></div>
@@ -612,6 +629,8 @@ async function saveLink(text) {
     else { drawSteps(0, true); $('#saveTitle').textContent = 'Saved: ' + r.title; }
     $('#saveView').style.display = 'flex';
     $('#saveView').onclick = () => openRecipe(r.url);
+    if (r.status === 'filling') startFill(r.url);
+    if (!j.queued && !j.duplicate) setTimeout(() => { if ($('#sSave').classList.contains('on')) openRecipe(r.url); }, 900);
   } catch (e) {
     clearInterval(stepTimer);
     $('#saveTitle').textContent = "Couldn't reach the server";
