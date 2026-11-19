@@ -1,5 +1,5 @@
 // Keeps the app shell available offline. Recipes themselves are cached by the page.
-const CACHE = 'our-recipes-v2';
+const CACHE = 'our-recipes-v3';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
