@@ -593,12 +593,17 @@ async function saveLink(text) {
   let n = 0; drawSteps(0);
   clearInterval(stepTimer);
   stepTimer = setInterval(() => { if (n < STEPS.length - 1) drawSteps(++n); }, 3500);
+  clearTimeout(saveLink._slow);
+  saveLink._slow = setTimeout(() => {
+    if ($('#sSave').classList.contains('on') && $('#saveView').style.display === 'none' && !$('#saveMsg').textContent)
+      $('#saveMsg').textContent = 'This can take up to a minute. You can tap Back to recipes and it\u2019ll keep saving in the background.';
+  }, 12000);
 
   if (API.startsWith('PASTE')) { clearInterval(stepTimer); $('#saveTitle').textContent = 'Not connected yet'; $('#saveMsg').textContent = 'Paste your Apps Script URL into index.html.'; return; }
 
   try {
     const j = await apiPost({ text: text });
-    clearInterval(stepTimer);
+    clearInterval(stepTimer); clearTimeout(saveLink._slow); $('#saveMsg').textContent = '';
     if (!j.ok) { $('#saveTitle').textContent = "Couldn't save that"; $('#saveMsg').textContent = j.error || 'Something went wrong.'; return; }
     const r = j.recipe;
     recipes = [r].concat(recipes.filter(x => x.url !== r.url)); store.set('recipes', recipes); renderList();
@@ -613,7 +618,7 @@ async function saveLink(text) {
     $('#saveMsg').textContent = 'Check your internet and try again.';
   }
 }
-$('#saveBack').onclick = () => { clearInterval(stepTimer); show('sList'); };
+$('#saveBack').onclick = () => { clearInterval(stepTimer); show('sList'); setTimeout(refresh, 20000); setTimeout(refresh, 60000); };
 
 $('#addBtn').onclick = () => { $('#addSheet').classList.add('on'); $('#addUrl').value = ''; setTimeout(() => $('#addUrl').focus(), 50); };
 $('#addCancel').onclick = () => $('#addSheet').classList.remove('on');
