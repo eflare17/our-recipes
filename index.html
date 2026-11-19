@@ -457,8 +457,11 @@ const IS_ANDROID = /Android/i.test(navigator.userAgent);
 // On Android, open the TikTok app itself (falls back to the TikTok website if the app isn't installed)
 function tiktokLink(url) {
   if (!IS_ANDROID || !/^https:\/\/(www\.)?tiktok\.com\//.test(url)) return url;
-  const path = url.replace(/^https:\/\//, '');
-  return 'intent://' + path + '#Intent;scheme=https;package=com.zhiliaoapp.musically;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+  const id = (url.match(/\/video\/(\d+)/) || [])[1];
+  if (!id) return url;
+  // TikTok's own app link: opens straight onto the video in the TikTok app.
+  // If the TikTok app isn't installed, Android falls back to the website.
+  return 'intent://aweme/detail/' + id + '#Intent;scheme=snssdk1233;package=com.zhiliaoapp.musically;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
 }
 $('#playBtn').onclick = () => {
   if (!current || !current.url) return;

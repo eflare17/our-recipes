@@ -1,5 +1,5 @@
 // Keeps the app shell available offline. Recipes themselves are cached by the page.
-const CACHE = 'our-recipes-v6';
+const CACHE = 'our-recipes-v7';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 const FRESH = { cache: 'no-cache' }; // always check GitHub for a newer copy
 
